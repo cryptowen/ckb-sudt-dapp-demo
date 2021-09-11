@@ -17,3 +17,15 @@ export function genRandomHex(size: number): string {
       .join("")
   );
 }
+
+export function getFromEnv(key: string, defaultValue?: string): string {
+  const value = process.env[key];
+  if (value !== undefined) {
+    return value;
+  }
+  if (defaultValue !== undefined) {
+    return defaultValue;
+  } else {
+    throw new Error(`${key} not provided in ENV`);
+  }
+}

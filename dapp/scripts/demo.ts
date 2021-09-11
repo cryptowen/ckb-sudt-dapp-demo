@@ -9,23 +9,21 @@ import { key } from "@ckb-lumos/hd";
 import { initializeConfig } from "@ckb-lumos/config-manager";
 import { SudtDapp } from "../src/sudt";
 import { initLog } from "../dist/helper/logger";
-import { genRandomHex } from "../src/helper/utils";
+import * as dotenv from "dotenv";
+import { getFromEnv } from "../src/helper/utils";
+dotenv.config({ path: ".env" });
 
 async function main() {
   // you can set log level to debug to see detailed log
   initLog({ level: "info" });
   logger.info("start demo");
   // init lumos config
-  process.env.LUMOS_CONFIG_NAME = "AGGRON4";
   initializeConfig();
-  // const ckbRpcUrl = "https://testnet.ckbapp.dev/rpc";
-  // const ckbIndexerUrl = "https://testnet.ckbapp.dev/indexer";
-  const ckbRpcUrl = "http://47.56.233.149:3017/rpc";
-  const ckbIndexerUrl = "http://47.56.233.149:3017/indexer";
+  const ckbRpcUrl = getFromEnv("CKB_RPC_URL");
+  const ckbIndexerUrl = getFromEnv("CKB_INDEXER_URL");
   // const ckb = new RPC(ckbRpcUrl);
   // set private key
-  const privateKey =
-    "0x08f7ee739f268c2e62963ee43d9aa680e4a56e4e7e0d1ce4882e25093ebff8fd";
+  const privateKey = getFromEnv("PRIVATE_KEY");
   const pubkeyHash = key.privateKeyToBlake160(privateKey);
   const address = generateSecp256k1Blake160Address(pubkeyHash);
   const userLock = parseAddress(address);
