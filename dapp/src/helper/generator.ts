@@ -253,7 +253,7 @@ export class CkbTxHelper {
           `wait for ${txHash} until committed timeout after ${timeout} seconds`
         );
       }
-      await asyncSleep(1000);
+      await asyncSleep(3000);
     }
   }
 

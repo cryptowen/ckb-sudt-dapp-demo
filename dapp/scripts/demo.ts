@@ -12,15 +12,17 @@ import { initLog } from "../dist/helper/logger";
 import { genRandomHex } from "../src/helper/utils";
 
 async function main() {
-  // uncomment below line to see detailed log
-  initLog({ level: "debug" });
+  // you can set log level to debug to see detailed log
+  initLog({ level: "info" });
   logger.info("start demo");
   // init lumos config
   process.env.LUMOS_CONFIG_NAME = "AGGRON4";
   initializeConfig();
-  const ckbRpcUrl = "https://testnet.ckbapp.dev";
-  const ckbIndexerUrl = "https://testnet.ckbapp.dev/indexer";
-  const ckb = new RPC(ckbRpcUrl);
+  // const ckbRpcUrl = "https://testnet.ckbapp.dev/rpc";
+  // const ckbIndexerUrl = "https://testnet.ckbapp.dev/indexer";
+  const ckbRpcUrl = "http://47.56.233.149:3017/rpc";
+  const ckbIndexerUrl = "http://47.56.233.149:3017/indexer";
+  // const ckb = new RPC(ckbRpcUrl);
   // set private key
   const privateKey =
     "0x08f7ee739f268c2e62963ee43d9aa680e4a56e4e7e0d1ce4882e25093ebff8fd";
@@ -59,10 +61,9 @@ async function main() {
   logger.info(`issue tx hash ${issueTxHash}`);
   logger.info("owner balance after issue:", balance1);
   // transfer
-  const randomRecipientPrivatekey = genRandomHex(64);
-  const recipientAddress = generateSecp256k1Blake160Address(
-    key.privateKeyToBlake160(randomRecipientPrivatekey)
-  );
+  const recipientAddress =
+    "ckt1qsfy5cxd0x0pl09xvsvkmert8alsajm38qfnmjh2fzfu2804kq47djzhsppfnjm53ychlrnvvpqdpj604aqp23lmn7k";
+  logger.info("recipient address:", recipientAddress);
   logger.info(
     "sender balance before transfer:",
     await sudtDapp.getBalance(address, sudtArg)
@@ -73,7 +74,8 @@ async function main() {
   );
   const transferUnsignedTx = await sudtDapp.transfer(
     userLock,
-    10n,
+    sudtArg,
+    11n,
     recipientAddress
   );
   const transferTxHash = await sudtDapp.signAndSendTransaction(

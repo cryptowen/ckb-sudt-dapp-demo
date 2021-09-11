@@ -20,6 +20,7 @@ export class SudtDapp extends CkbTxHelper {
   }
 
   async getBalance(address: string, args: string): Promise<bigint> {
+    await this.indexer.waitForSync();
     const userLock = parseAddress(address);
     const searchKey = {
       script: userLock,
@@ -88,6 +89,7 @@ export class SudtDapp extends CkbTxHelper {
 
   async transfer(
     fromLockscript: Script,
+    sudtArgs: string,
     amount: bigint,
     recipientAddress: string
   ): Promise<TransactionSkeletonType> {
@@ -98,7 +100,7 @@ export class SudtDapp extends CkbTxHelper {
     const sudtType = {
       code_hash: this.sudtConfig.script.codeHash,
       hash_type: this.sudtConfig.script.hashType,
-      args: utils.computeScriptHash(fromLockscript),
+      args: sudtArgs,
     };
     // add header
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
@@ -110,11 +112,41 @@ export class SudtDapp extends CkbTxHelper {
         dep_type: this.sudtConfig.cellDep.depType,
       });
     });
+    // collect inputs
+    const searchKey = {
+      script: fromLockscript,
+      script_type: ScriptType.lock,
+      filter: {
+        script: {
+          code_hash: this.sudtConfig.script.codeHash,
+          hash_type: this.sudtConfig.script.hashType,
+          args: sudtArgs,
+        },
+      },
+    };
+    const inputCells = await this.collector.collectSudtByAmount(
+      searchKey,
+      amount
+    );
+    let inputSudtAmount = 0n;
+    inputCells.forEach((cell) => {
+      const amount = utils.readBigUInt128LE(cell.data);
+      inputSudtAmount += amount;
+    });
+    txSkeleton = txSkeleton.update("inputs", (inputs) => {
+      return inputs.concat(inputCells);
+    });
+    const sudtLeft = inputSudtAmount - amount;
+    if (sudtLeft < 0) {
+      throw Error(
+        `insufficient sudt, need: ${amount}, have: ${inputSudtAmount}`
+      );
+    }
     // add output
     const sudtOutput: Cell = {
       cell_output: {
         capacity: "0x0",
-        lock: fromLockscript,
+        lock: recipient,
         type: sudtType,
       },
       data: utils.toBigUInt128LE(amount),
@@ -124,6 +156,25 @@ export class SudtDapp extends CkbTxHelper {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push(sudtOutput);
     });
+    // add sudt change cell if there is sudt left
+    if (sudtLeft > 0) {
+      const sudtChangeOutput: Cell = {
+        cell_output: {
+          capacity: "0x0",
+          lock: fromLockscript,
+          type: sudtType,
+        },
+        data: utils.toBigUInt128LE(sudtLeft),
+      };
+      const sudtChangeCellCapacity = minimalCellCapacity(sudtChangeOutput);
+      sudtChangeOutput.cell_output.capacity = `0x${sudtChangeCellCapacity.toString(
+        16
+      )}`;
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.push(sudtChangeOutput);
+      });
+    }
+    // complete tx
     txSkeleton = await this.completeTx(txSkeleton, fromAddress);
     return txSkeleton;
   }
