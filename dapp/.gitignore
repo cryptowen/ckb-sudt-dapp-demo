@@ -1,1 +1,4 @@
 node_modules/
+dist/
+keys/
+yarn-error.log

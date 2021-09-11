@@ -4,11 +4,29 @@
   "main": "index.js",
   "author": "huwenchao <zjuhwc@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./dist",
+    "compile": "tsc -p tsconfig.json",
+    "prettier": "prettier --write '**/*.ts'"
+  },
   "devDependencies": {
+    "@types/node": "^16.9.1",
+    "prettier": "^2.4.0",
+    "rimraf": "^3.0.2",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@ckb-lumos/rpc": "^0.18.0-rc1"
+    "@ckb-lumos/base": "^0.18.0-rc1",
+    "@ckb-lumos/common-scripts": "^0.18.0-rc1",
+    "@ckb-lumos/config-manager": "^0.18.0-rc1",
+    "@ckb-lumos/hd": "^0.18.0-rc1",
+    "@ckb-lumos/helpers": "^0.18.0-rc1",
+    "@ckb-lumos/rpc": "^0.18.0-rc1",
+    "@ckb-lumos/transaction-manager": "^0.18.0-rc1",
+    "axios": "^0.21.4",
+    "lodash": "^4.17.21",
+    "log4js": "^6.3.0"
   }
 }

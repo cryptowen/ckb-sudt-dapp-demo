@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2020",
+    "strictNullChecks": true,
+    "noEmitOnError": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "skipLibCheck": true
+  },
+  "include": ["src", "src/**/*.json"],
+  "exclude": ["node_modules", "dist"]
+}
