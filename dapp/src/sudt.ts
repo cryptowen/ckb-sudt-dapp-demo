@@ -73,7 +73,7 @@ export class SudtDapp extends CkbTxHelper {
     const sudtOutput: Cell = {
       cell_output: {
         capacity: "0x0",
-        lock: fromLockscript,
+        lock: recipient,
         type: sudtType,
       },
       data: utils.toBigUInt128LE(amount),

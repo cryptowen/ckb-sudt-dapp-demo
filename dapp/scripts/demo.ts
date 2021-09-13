@@ -23,13 +23,24 @@ async function main() {
   const ckbIndexerUrl = getFromEnv("CKB_INDEXER_URL");
   // const ckb = new RPC(ckbRpcUrl);
   // set private key
-  const privateKey = getFromEnv("PRIVATE_KEY");
+  const privateKey = getFromEnv("ISSUER_PRIVATE_KEY");
   const pubkeyHash = key.privateKeyToBlake160(privateKey);
   const address = generateSecp256k1Blake160Address(pubkeyHash);
   const userLock = parseAddress(address);
-  logger.info(`address: ${address}`);
+  logger.info(`issuer address: ${address}`);
   const sudtArg = utils.computeScriptHash(userLock);
   logger.info(`sudtArg: ${sudtArg}`);
+  const alicePrivateKey = getFromEnv("ALICE_PRIVATE_KEY");
+  const aliceAddress = generateSecp256k1Blake160Address(
+    key.privateKeyToBlake160(alicePrivateKey)
+  );
+  const aliceLock = parseAddress(aliceAddress);
+  logger.info(`alice address: ${aliceAddress}`);
+  const bobPrivateKey = getFromEnv("BOB_PRIVATE_KEY");
+  const bobAddress = generateSecp256k1Blake160Address(
+    key.privateKeyToBlake160(bobPrivateKey)
+  );
+  logger.info(`bob address: ${bobAddress}`);
   // get balance
   const sudtConfig = {
     cellDep: {
@@ -47,47 +58,48 @@ async function main() {
     },
   };
   const sudtDapp = new SudtDapp(ckbRpcUrl, ckbIndexerUrl, sudtConfig);
-  const balance0 = await sudtDapp.getBalance(address, sudtArg);
-  logger.info("owner initial balance:", balance0);
   // issue
-  const issueUnsignedTx = await sudtDapp.issue(userLock, 100n);
+  logger.info(
+    "alice balance before issue:",
+    await sudtDapp.getBalance(aliceAddress, sudtArg)
+  );
+  const issueUnsignedTx = await sudtDapp.issue(userLock, 100n, aliceAddress);
   const issueTxHash = await sudtDapp.signAndSendTransaction(
     issueUnsignedTx,
     privateKey
   );
-  const balance1 = await sudtDapp.getBalance(address, sudtArg);
   logger.info(`issue tx hash ${issueTxHash}`);
-  logger.info("owner balance after issue:", balance1);
-  // transfer
-  const recipientAddress =
-    "ckt1qsfy5cxd0x0pl09xvsvkmert8alsajm38qfnmjh2fzfu2804kq47djzhsppfnjm53ychlrnvvpqdpj604aqp23lmn7k";
-  logger.info("recipient address:", recipientAddress);
   logger.info(
-    "sender balance before transfer:",
-    await sudtDapp.getBalance(address, sudtArg)
+    "alice balance after issue:",
+    await sudtDapp.getBalance(aliceAddress, sudtArg)
+  );
+  // transfer
+  logger.info(
+    "alice balance before transfer:",
+    await sudtDapp.getBalance(aliceAddress, sudtArg)
   );
   logger.info(
-    "recipient balance before transfer:",
-    await sudtDapp.getBalance(recipientAddress, sudtArg)
+    "bob balance before transfer:",
+    await sudtDapp.getBalance(bobAddress, sudtArg)
   );
   const transferUnsignedTx = await sudtDapp.transfer(
-    userLock,
+    aliceLock,
     sudtArg,
     11n,
-    recipientAddress
+    bobAddress
   );
   const transferTxHash = await sudtDapp.signAndSendTransaction(
     transferUnsignedTx,
-    privateKey
+    alicePrivateKey
   );
   logger.info(`transfer tx hash ${transferTxHash}`);
   logger.info(
-    "sender balance after transfer:",
-    await sudtDapp.getBalance(address, sudtArg)
+    "alice balance before transfer:",
+    await sudtDapp.getBalance(aliceAddress, sudtArg)
   );
   logger.info(
-    "recipient balance after transfer:",
-    await sudtDapp.getBalance(recipientAddress, sudtArg)
+    "bob balance before transfer:",
+    await sudtDapp.getBalance(bobAddress, sudtArg)
   );
 }
 
